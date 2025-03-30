@@ -11,26 +11,26 @@
 ***
 邮件分类中的具体应用:
 1. 输入：邮件的词频向量（如[0, 2, 1, ...]表示各特征词的出现次数）
-2. 输出：选择使后验概率最大的类别（argmax P(类别|特征)）
+2. 输出：选择使后验概率最大的类别（`argmax P(类别|特征)`）
 ## 数据处理流程
 分词处理:
-1. 使用jieba.cut()对中文文本分词（如将"自然语言处理"切分为["自然", "语言", "处理"]）
-2. 过滤单字词（len(word) > 1），减少噪声特征。
+1. 使用`jieba.cut()`对中文文本分词（如将`"自然语言处理"`切分为`["自然", "语言", "处理"]`）
+2. 过滤单字词（`len(word) > 1`），减少噪声特征。
 ***
 停用词与无效字符过滤:
 1. 正则表达式清洗
    + `re.sub(r'[.【】0-9、——。，！~\*]', '', text)  # 移除标点符号和数字`
 2. 停用词处理
-   + 代码中未显式定义停用词表，但通过长度过滤（len(word) > 1）隐式去除了部分无意义词;若需增强效果，可添加自定义停用词表（如stop_words = ["的", "是", ...]）
+   + 代码中未显式定义停用词表，但通过长度过滤（`len(word) > 1`）隐式去除了部分无意义词;若需增强效果，可添加自定义停用词表（如`stop_words = ["的", "是", ...]`）
 ***
 文本标准化:
-+ 分词后使用空格拼接（' '.join(words)），以满足TfidfVectorizer的输入格式要求
++ 分词后使用空格拼接（`' '.join(words)`），以满足`TfidfVectorizer`的输入格式要求
 ## 特征构建过程
 高频词特征选择:
 1. 数学表达
-   + 对每个文档d，生成词频向量x，其中xi=count(wi)（词wi的出现次数）
+   + 对每个文档d，生成词频向量x，其中`xi=count(wi)`（词wi的出现次数）
 2. 实现差异
-   + 手动统计词频（Counter + map），选择前top_num高频词
+   + 手动统计词频（`Counter + map`），选择前`top_num`高频词
    + 特征值为原始计数，未考虑词的全局重要性
 ***
 TF-IDF加权特征：
@@ -39,19 +39,19 @@ TF-IDF加权特征：
    + TF(w,d)：词w在文档d中的频率
    + DF(w)：包含词w的文档数
 2. 实现差异
-   + 使用TfidfVectorizer自动计算加权值，特征值为归一化后的权重
-   + 通过max_features限制特征维度，类似高频词截断
+   + 使用`TfidfVectorizer`自动计算加权值，特征值为归一化后的权重
+   + 通过`max_features`限制特征维度，类似高频词截断
 ## 高频词/TF-IDF两种特征模式的切换方法
-通过extract_features(method, top_num)函数实现切换：
-1. 高频词模式（method='frequency'）：
+通过`extract_features(method, top_num)`函数实现切换：
+1. 高频词模式（`method='frequency'`）：
    + `vector = [ [words.count(word) for word in top_words] for words in all_words ]`
-2. TF-IDF模式（method='tfidf'）：
+2. TF-IDF模式（`method='tfidf'`）：
    + `tfidf = TfidfVectorizer(max_features=top_num)
    vector = tfidf.fit_transform(texts).toarray()`
 # 样本平衡处理
 SMOTE过采样集成:
 1. 在模型训练前添加SMOTE过采样步骤
-2. 使用smote.fit_resample()生成平衡数据集
+2. 使用`smote.fit_resample()`生成平衡数据集
 3. 打印过采样前后的类别分布以验证效果
 ***
 样本平衡验证:
@@ -59,7 +59,7 @@ SMOTE过采样集成:
 print("过采样后类别分布:", np.bincount(labels_resampled))  # 输出: [127 127]`
 ***
 模型训练调整:
-1. 使用平衡后的数据(vector_resampled, labels_resampled)训练模型
+1. 使用平衡后的数据(`vector_resampled, labels_resampled`)训练模型
 2. 保持预测函数不变，确保接口一致性
 # 增加模型评估指标
 新增训练测试机划分:
